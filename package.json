@@ -1,0 +1,27 @@
+{
+  "name": "capstonebackend",
+  "version": "0.1.0",
+  "description": "backend or restApi support for capstone",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hunny",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.17.2",
+    "cors": "^2.8.5",
+    "express": "^4.15.3",
+    "jsonwebtoken": "^7.4.1",
+    "mongodb": "^3.3.2",
+    "mongoose": "^5.7.1",
+    "mongoose-title-case": "0.0.4",
+    "mongoose-unique-validator": "^1.0.5",
+    "mongoose-validator": "^1.3.2",
+    "nodemon": "^1.19.2",
+    "passport": "^0.3.2",
+    "passport-jwt": "^2.2.1"
+  }
+}
