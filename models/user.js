@@ -1,48 +1,56 @@
-const mongoose = require('mongoose');
-const titlize = require('mongoose-title-case');
-const unique = require('mongoose-unique-validator');
-const validate = require('mongoose-validator');
-const bcrypt = require('bcrypt-nodejs');
-const config = require('../config/secret');
+const mongoose = require("mongoose");
+const titlize = require("mongoose-title-case");
+const unique = require("mongoose-unique-validator");
+const validate = require("mongoose-validator");
+const bcrypt = require("bcrypt-nodejs");
+const config = require("../config/secret");
 
 const nameValidator = [
   validate({
-    validator: 'isLength',
+    validator: "isLength",
     arguments: [0, 40],
-    message: 'Name must not exceed {ARGS[1]} characters.'
+    message: "Name must not exceed {ARGS[1]} characters."
   })
 ];
 
 const emailValidator = [
   validate({
-    validator: 'isLength',
+    validator: "isLength",
     arguments: [0, 40],
-    message: 'Email must not exceed {ARGS[1]} characters.'
+    message: "Email must not exceed {ARGS[1]} characters."
   }),
   validate({
-    validator: 'isEmail',
-    message: 'Email must be valid.'
+    validator: "isEmail",
+    message: "Email must be valid."
   })
 ];
 
 const usernameValidator = [
   validate({
-    validator: 'isLength',
+    validator: "isLength",
     arguments: [3, 15],
-    message: 'Username must be between {ARGS[0]} and {ARGS[1]} characters.'
+    message: "Username must be between {ARGS[0]} and {ARGS[1]} characters."
   }),
   validate({
-    validator: 'matches',
+    validator: "matches",
     arguments: /^[A-Za-z][-_A-Za-z0-9]+$/,
-    message: 'Username must start with a letter and must not have special characters except - and _.'
+    message:
+      "Username must start with a letter and must not have special characters except - and _."
   })
 ];
 
 const passwordValidator = [
   validate({
-    validator: 'isLength',
+    validator: "isLength",
     arguments: [6, 20],
-    message: 'Password must be between {ARGS[0]} and {ARGS[1]} characters.'
+    message: "Password must be between {ARGS[0]} and {ARGS[1]} characters."
+  })
+];
+const contactLength = [
+  validate({
+    validator: "isLength",
+    arguments: 10,
+    message: "contact length must be 10 digits"
   })
 ];
 
@@ -53,50 +61,79 @@ const UserSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email is required.'],
+    required: [true, "Email is required."],
     unique: true,
     validate: emailValidator
   },
   username: {
     type: String,
-    required: [true, 'Username is required.'],
+    required: [true, "Username is required."],
     unique: true,
     validate: usernameValidator
   },
   password: {
     type: String,
-    required: [true, 'Password is required.'],
+    required: [true, "Password is required."],
     validate: passwordValidator
   },
   role: {
-    type:String,
-    required:true,
-
-
+    type: String,
+    required: true
+  },
+  userDetails: {
+    profileImg: {
+      type: String,
+      default: " ",
+      
+    },
+    contactNumber: {
+      type: String,
+      default: " ",
+      
+     
+      
+    },
+    contactVerifed: {
+      type: Boolean,
+      default: false
+    },
+    contactAddress: {
+      type: String,
+      default: " "
+    },
+    contactAddressverified: {
+      type: Boolean,
+      default: false
+    }
   }
 });
 
 // Use the unique validator plugin
-UserSchema.plugin(unique, { message: 'That {PATH} is already taken.' });
+UserSchema.plugin(unique, { message: "That {PATH} is already taken." });
 
 // Make the name capitalization consistent
-UserSchema.plugin(titlize, { paths: ['name'], trim: false });
+UserSchema.plugin(titlize, { paths: ["name"], trim: false });
 
 // Encrypt the password before saving
-UserSchema.pre('save', function (next) {
-
+UserSchema.pre("save", function(next) {
   const user = this;
-  if (!user.isModified('password')) { return next(); }
+  if (!user.isModified("password")) {
+    return next();
+  }
 
   bcrypt.genSalt(10, (err, salt) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
 
     bcrypt.hash(user.password, salt, null, (error, hash) => {
-      if (error) { return next(error); }
+      if (error) {
+        return next(error);
+      }
       user.password = hash;
       next();
     });
   });
 });
 
-const User = module.exports = mongoose.model('user', UserSchema);
+const User = (module.exports = mongoose.model("user", UserSchema));
