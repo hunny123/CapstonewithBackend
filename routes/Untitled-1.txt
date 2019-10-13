@@ -1,0 +1,363 @@
+import React, { Component } from 'react';
+import { Collapse } from 'react-collapse';
+import { Card , CardHeader,CardBody} from 'reactstrap'
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+import {
+  brushValueAction,
+  tagsAction,
+  polygonTypeAction,
+  polygonCordinateAction,
+  closedAction,
+} from '../../../actions/imageDataActions';
+// import { data } from './dumydata';
+// import './labelAreacss.css';
+// import SelectedTagArea from './selectedTagArea';
+import TagBox from './tagBox';
+class labelArea extends Component {
+  constructor(props) {
+    super(props);
+    const { data } = this.props;
+    this.state = {
+      selected: {},
+      data,
+      collapse:"type",
+      
+    };
+  }
+
+  // used to define initial selected according to data
+
+  componentDidMount() {
+    this.makeState();
+  }
+
+  componentDidUpdate(prevProps) {
+    // Typical usage (don't forget to compare props):
+    const { closed } = this.props;
+    if (closed !== prevProps.closed) {
+      this.stateUpdate();
+      this.makeState();
+      this.makeTags();
+    }
+  }
+
+  // handle when  polygon type is changed
+  onHandleSelect = event => {
+    const { value } = event.target;
+    const {
+      brushValueAction,
+      polygonTypeAction,
+
+      polygonCordinateAction,
+      closedAction,
+    } = this.props;
+
+    // reseting data
+    brushValueAction(value);
+    polygonTypeAction(value);
+    polygonCordinateAction([]);
+    closedAction(false);
+    // this.makeTags();
+    // this.makeState();
+  };
+
+  tagSelected = (tag, tagType) => {
+    const { closed, polgonType } = this.props;
+    const { selected } = this.state;
+    if (!closed) {
+      if (polgonType === 'Bounding-Box') {
+        alert('Draw the Bounding-Box First then tag it ');
+      } else {
+        alert('Draw or closed Polygon First then tag it');
+      }
+    } else if (typeof selected[tagType] === 'string') {
+      this.updateSingleTags(tag, tagType);
+    } else {
+      this.updateMultipeTags(tag, tagType);
+    }
+  };
+
+  submit = () => {
+    const { closed } = this.props;
+    if (closed && this.checktheSelected()) {
+      alert('send of the data');
+    }
+  };
+
+  // onHandleSearch = event => {
+  //   const { value } = event.target;
+  //   const { data } = this.state;
+  //   const { closed, polgonType } = this.props;
+  //   if (closed) {
+  //     this.setState({
+  //       query: value,
+  //     });
+  //   } else {
+  //     alert(`closed or draw the ${polgonType}  `);
+  //   }
+  //   const filterData = this.jsonCopy(data);
+  //   if (value.length >= 3 && closed) {
+  //     Object.keys(filterData).map(key => {
+  //       filterData[key].values = filterData[key].values.filter(item =>
+  //         item.includes(value)
+  //       );
+  //       return null;
+  //     });
+
+  //     this.setState({
+  //       data: filterData,
+  //     });
+  //   } else {
+  //     const { data } = this.props;
+  //     this.setState({
+  //       data,
+  //     });
+  //   }
+  // };
+
+  // jsonCopy(src) {
+  //   return JSON.parse(JSON.stringify(src));
+  // }
+  toggle = e => {
+    const { event } = e.target.dataset;
+    const { collapse } = this.state;
+    this.setState({
+      collapse:collapse===event?false:event
+    })
+    ;
+  }
+
+  // used to handle attribute which require multiple selection
+  updateMultipeTags(tag, tagType) {
+    const { selected } = this.state;
+    const { tagsAction } = this.props;
+    const { props } = this;
+    if (selected[tagType].includes(tag)) {
+      const filterSelected = selected[tagType].filter(item => item !== tag);
+
+      selected[tagType] = filterSelected;
+
+      this.setState({
+        selected,
+      });
+    } else {
+      selected[tagType].push(tag);
+
+      this.setState({
+        selected,
+      });
+    }
+    if (props.tags[tagType].includes(tag)) {
+      const filterTags = props.tags[tagType].filter(item => item !== tag);
+
+      props.tags[tagType] = filterTags;
+      tagsAction(props.tags);
+    } else {
+      props.tags[tagType].push(tag);
+      tagsAction(props.tags);
+    }
+  }
+
+  // used to handle attribute which require single selection
+  updateSingleTags(tag, tagType) {
+    const { selected } = this.state;
+    const { tags, tagsAction } = this.props;
+
+    if (selected[tagType] === tag) {
+      selected[tagType] = '';
+
+      this.setState({
+        selected,
+      });
+    } else {
+      selected[tagType] = tag;
+
+      this.setState({
+        selected,
+      });
+    }
+    if (tags[tagType] === tag) {
+      tags[tagType] = '';
+      tagsAction(tags);
+    } else {
+      tags[tagType] = tag;
+      tagsAction(tags);
+    }
+  }
+
+  stateUpdate() {
+    this.setState({
+      selected: {},
+    });
+  }
+
+  makeTags() {
+    const tags = {};
+    const { tagsAction } = this.props;
+    const { data } = this.state;
+    Object.keys(data).forEach(ele => {
+      if (data[ele].isMultiple) {
+        tags[ele] = [];
+      } else {
+        tags[ele] = '';
+      }
+    });
+    tagsAction(tags);
+  }
+
+  // checking for empty or not
+  checktheSelected() {
+    const { tags } = this.props;
+    let flag = false;
+    Object.keys(tags).forEach(key => {
+      if (tags[key].length > 0) {
+        flag = true;
+      }
+    });
+
+    return flag;
+  }
+
+  makeState() {
+    const selected = {};
+    const { data } = this.state;
+    Object.keys(data).forEach(ele => {
+      if (data[ele].isMultiple) {
+        selected[ele] = [];
+      } else {
+        selected[ele] = '';
+      }
+    });
+
+    this.setState({
+      selected,
+    });
+  }
+
+  
+  
+  render() {
+    const { selected, data ,collapse} = this.state;
+    const { closed } = this.props;
+
+    return (
+      <div>
+        {/*
+        <div className="selection-type">
+           <h3>
+            <strong>Selection Type</strong>
+          </h3>
+          <select onChange={this.onHandleSelect}>
+            <option value="Bounding-Box">Bounding Box</option>
+            <option value="Polygon-Box">Polygon Box</option>
+          </select> 
+        </div>
+        */}
+
+        {/* <div>
+          <h3 className="m-1">
+            <strong>Search </strong>
+          </h3>
+
+          <input
+            type="text"
+            name="search"
+            onChange={this.onHandleSearch}
+            width="50%"
+            value={query}
+          ></input>
+        </div> */}
+        <h3>
+          <strong>Select Tags</strong>
+        </h3>
+        <div className="tagbox">
+          
+          {Object.keys(selected).map(key => {
+            
+            if (data[key].values.length > 0) {
+              return (
+                <div className="m-1" key={key}>
+                  <CardHeader className="bg-header p-2" onClick={this.toggle} data-event={key}>
+                  
+                    {key} ( {
+                      data[key].isMultiple ? "Multiple" : "Single"
+                    } ) 
+                    
+                    
+                    <span className="float-right">{
+                      collapse === key?"-":"+"
+                    }
+                    </span>
+
+                  
+                  </CardHeader>
+                  
+                  <Collapse isOpened={collapse===key} >
+                    <div className="ReactCollapse--collapse">
+                      <TagBox data={data} type={key} selected={selected} tagSelected={this.tagSelected} />
+                    </div>  
+                  </Collapse>
+                  
+                </div>)
+            }
+            return '';
+          })}
+        </div>
+        {/*
+        <div>
+          <h3 className="">
+            <strong>Selected Tags</strong>
+          </h3>
+          <SelectedTagArea selected={selected} onClick={this.tagSelected} />
+          <button
+            type="button"
+            onClick={this.submit}
+            className={`btn btn-primary  ${
+              closed && this.checktheSelected() ? '' : 'disabled'
+            }`}
+          >
+            Submit
+          </button>
+        </div>
+          */}
+        <div className="form-action">
+          <button
+            type="button"
+            onClick={this.submit}
+            className={`btn   ${
+              closed && this.checktheSelected() ? 'btn-primary' : 'disabled'
+            }`}
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = ({ Data }) => ({
+  ...Data,
+});
+labelArea.propTypes = {
+  tags: PropTypes.object.isRequired,
+  closed: PropTypes.bool.isRequired,
+  closedAction: PropTypes.func.isRequired,
+  tagsAction: PropTypes.func.isRequired,
+  polygonTypeAction: PropTypes.func.isRequired,
+  polygonCordinateAction: PropTypes.func.isRequired,
+  brushValueAction: PropTypes.func.isRequired,
+  polgonType: PropTypes.string.isRequired,
+  data: PropTypes.object.isRequired,
+};
+export default connect(
+  mapStateToProps,
+  {
+    brushValueAction,
+    tagsAction,
+    polygonTypeAction,
+    polygonCordinateAction,
+    closedAction,
+  }
+)(labelArea);

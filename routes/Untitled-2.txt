@@ -1,0 +1,176 @@
+import React, { Component, Fragment } from 'react';
+
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+class TagBox extends Component {
+  constructor(props) {
+    super(props);
+    const { data } = this.props;
+    this.state = {
+      data,
+      query: "",
+      
+      
+    };
+  }
+  
+  onSearchType = event => {
+    const { value } = event.target;
+    const { data } = this.state;
+    const { type } = this.props;
+    
+    const { closed, polgonType } = this.props;
+    if (closed) {
+      this.setState({
+        query: value,
+      });
+    } else {
+      alert(`closed or draw the ${polgonType}  `);
+    }
+    
+    if (value.length >= 3 && closed) {
+      const filterData = {}
+      filterData[type] = {
+        "isMultiple": data[type].isMultiple,
+        values:[]
+      }
+    
+      const pattern = new RegExp(`${value}`)
+      
+      const values= data[type].values.filter(item =>
+        pattern.test(item))
+      filterData[type].values = values
+      
+      console.log(filterData)
+      // Object.keys(filterData).map(key => {
+      //     filteData[key].values =data[key].values.filter(item =>
+      //     item.includes(value)
+      //   );
+      //   return null;
+      // });
+
+      this.setState({
+        data: { ...filterData },
+      });
+    } else {
+      const { data } = this.props;
+      this.setState({
+        data,
+      });
+    }
+  };
+ 
+  
+
+  render() {
+    const { selected, type, tagSelected } = this.props;
+    const { data,query,collapse } = this.state
+    const key = type;
+    console.log(this.props)
+    return (
+     
+       
+      <div className="tag-set" key={key}>
+        <div className="">
+          {/* <h4 className="m-1" onClick={this.toggle} data-event={type}>{type} ( {
+            data[type].isMultiple?"Multiple":"Single"
+          } )</h4>  */}
+        </div>
+        
+        <input
+          type="text"
+          name="search"
+          onChange={this.onSearchType}
+          width="50%"
+          height="50%"
+          value={query}
+          placeholder={`search in ${type}`}
+        ></input>
+       
+
+        {data[type].isMultiple === false && (
+          <div className="single-values">
+            {data[type].values.map(item => {
+              return (
+                <div type={item} key={item}>
+                  <button
+                    type="button"
+                    className={` m-1 btn-tag  ${
+                      selected[type] === item ||
+                      selected[type].includes(item)
+                        ? 'active'
+                        : ''
+                    }`}
+                    onClick={() => tagSelected(item, type)}
+                  >
+                    <span className="lnr lnr-checkmark-circle"></span>{' '}
+                    <i>{item}</i>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {data[type].isMultiple === true && (
+          <div className="multiple-values">
+            <div className="selected-tags">
+              {data[type].values.map(item => {
+                return (
+                  <Fragment key={item}>
+                    {selected[type] === item ||
+                    (selected[type].includes(item) && (
+                      <button
+                        type="button"
+                        className="m-1 btn-tag active"
+                        onClick={() => tagSelected(item, type)}
+                      >
+                        <i>{item}</i>
+                        <span className="lnr lnr-cross"> </span>
+                      </button>
+                    ))}
+                  </Fragment>
+                );
+              })}
+            </div>
+            <div className="available-tags">
+              {data[type].values.map(item => {
+                return (
+                  <Fragment key={item}>
+                    {!(
+                      selected[type] === item ||
+                    selected[type].includes(item)
+                    ) && (
+                      <button
+                        type="button"
+                        className="m-1 btn-tag"
+                        onClick={() => tagSelected(item, type)}
+                      >
+                        <i>{item}</i>
+                      </button>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        
+      </div>
+        
+    
+           
+    );
+  }
+}
+const mapStateToProps = ({ Data }) => ({
+  ...Data,
+});
+TagBox.propTypes = {
+  selected: PropTypes.object.isRequired,
+  data: PropTypes.object.isRequired,
+  tagSelected: PropTypes.func.isRequired,
+  type: PropTypes.string.isRequired,
+  closed: PropTypes.bool.isRequired,
+  polgonType:PropTypes.string.isRequired
+};
+export default connect(mapStateToProps)(TagBox)
