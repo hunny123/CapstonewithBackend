@@ -77,7 +77,7 @@ const upload = multer({
 
 
 router.post("/register", (req, res) => {
-  console.log(req.body);
+ 
   if (req.body.password !== req.body.confirmpassword) {
     res.status(400).json({ success: false, msg: "Passwords do not match." });
     return;
@@ -132,7 +132,7 @@ router.post("/register", (req, res) => {
 });
 
 router.post("/login", (req, res) => {
-  console.log(req.body);
+  
   const username = req.body.username;
   const password = req.body.password;
 
@@ -176,16 +176,18 @@ router.get(
   passport.authenticate("jwt", { session: false }),
 
   (req, res) => {
-    console.log(req.headers);
+    
     res.json({ user: req.user });
   }
 );
 
 router.post('/upload', passport.authenticate("jwt", { session: false }), upload.single('file'), (req, res) => {
-  console.log("i used")
+ 
   let file = req.file;
+  
   const user = JSON.parse(req.body.user)
-  console.log(req)
+  console.log(user)
+  
   if (file) {
     if (!filevalidate) {
       return res.status(400).json({ "mess": "please image only" })
@@ -199,11 +201,10 @@ router.post('/upload', passport.authenticate("jwt", { session: false }), upload.
               return res.status(400).json({ success: false, msg: "enter 10 digit or leave it blank" })
             }
   User.findByIdAndUpdate(user.id,
-    {
-
-      userDetails: user.userDetails
-
-    }, function (err, doc) {
+    {name: user.name,
+    userDetails: {
+    ...user.userDetails
+  }}, function (err, doc) {
 
       if (err) {
 
@@ -211,7 +212,7 @@ router.post('/upload', passport.authenticate("jwt", { session: false }), upload.
 
       } else {
 
-        return res.json({ message: 'user updated !' })
+        return res.json({ message: 'user updated !'  })
 
       }
 
@@ -229,9 +230,10 @@ router.post('/upload', passport.authenticate("jwt", { session: false }), upload.
   }
   User.findByIdAndUpdate(user.id,
     {
-
-      userDetails: user.userDetails
-
+      name: user.name,
+      userDetails: {
+        ...user.userDetails
+      }
     }, function (err, doc) {
 
       if (err) {

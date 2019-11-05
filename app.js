@@ -23,7 +23,7 @@ require('./config/passport')(passport);
 
 // Initialize routes middleware
 app.use('/api/users', require('./routes/users'));
-
+app.use('/api', require('./routes/service'));
 // Use express's default error handling middleware
 app.use(function (err, req, res, next) {
   if (res.headersSent) {
